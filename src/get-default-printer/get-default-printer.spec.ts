@@ -1,24 +1,12 @@
 import { mocked } from "jest-mock";
 import getDefaultPrinter, { Printer } from "./get-default-printer";
-import execAsync from "../utils/exec-file-async";
+import execAsync from "../utils/exec-async";
 
 jest.mock("../utils/throw-if-unsupported-os");
-jest.mock("../utils/exec-file-async");
+jest.mock("../utils/exec-async");
 const mockedExecAsync = mocked(execAsync);
 
-const mockDefaultPrinterStdout = `
-
-Status                      :
-Name                        : Microsoft Print to PDF
-Caption                     :
-Description                 :
-InstallDate                 :
-Availability                :
-DeviceID                    : Microsoft Print to PDF
-CimClass                    : root/cimv2:Win32_Printer
-CimInstanceProperties       : {Caption, Description, InstallDate, Name...}
-CimSystemProperties         : Microsoft.Management.Infrastructure.CimSystemProperties
-`;
+const mockDefaultPrinterStdout = `\r\r\nNode,DeviceID,Name\r\r\ntest,Microsoft Print to PDF,Microsoft Print to PDF\r\r\n`;
 
 it("gets the default printer", async () => {
   mockedExecAsync.mockResolvedValue({
@@ -26,7 +14,7 @@ it("gets the default printer", async () => {
     stderr: "",
   });
 
-  const result: Printer = await getDefaultPrinter();
+  const result: Printer | null = await getDefaultPrinter();
 
   expect(result).toStrictEqual({
     deviceId: "Microsoft Print to PDF",
@@ -43,14 +31,7 @@ it("returns null when default printer is not defined", async () => {
 });
 
 it("when did not find any printer info", async () => {
-  const stdout = `
-  Status                      :
-  Caption                     :
-  Description                 :
-  InstallDate                 :
-  Availability                :
-  CimSystemProperties         : Microsoft.Management.Infrastructure.CimSystemProperties
-  `;
+  const stdout = `\r\r\nNode,\r\r\n`;
   mockedExecAsync.mockResolvedValue({ stdout, stderr: "" });
 
   const result = await getDefaultPrinter();

@@ -1,4 +1,4 @@
-import execFileAsync from "../utils/exec-file-async";
+import execAsync from "../utils/exec-async";
 import isValidPrinter from "../utils/windows-printer-valid";
 import throwIfUnsupportedOperatingSystem from "../utils/throw-if-unsupported-os";
 import { Printer } from "../get-default-printer/get-default-printer";
@@ -8,7 +8,8 @@ async function getPrinters(): Promise<Printer[]> {
     const printers: Printer[] = [];
 
     stdout
-      .split(/(\r?\n){2,}/)
+      .split("\n")
+      .slice(2)
       .map((printer) => printer.trim())
       .filter((printer) => !!printer)
       .forEach((printer) => {
@@ -24,11 +25,11 @@ async function getPrinters(): Promise<Printer[]> {
 
   try {
     throwIfUnsupportedOperatingSystem();
-    const { stdout } = await execFileAsync("Powershell.exe", [
-      "-Command",
-      "Get-CimInstance Win32_Printer -Property DeviceID,Name",
-    ]);
-    return stdoutHandler(stdout);
+    const { stdout } = await execAsync(
+      "cmd.exe /c wmic printer get name,deviceid /format:csv"
+    );
+
+    return await stdoutHandler(stdout);
   } catch (error) {
     throw error;
   }

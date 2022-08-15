@@ -1,10 +1,10 @@
 import { mocked } from "jest-mock";
 import { Printer } from "../get-default-printer/get-default-printer";
-import execAsync from "../utils/exec-file-async";
+import execAsync from "../utils/exec-async";
 import getPrinters from "./get-printers";
 
 jest.mock("../utils/throw-if-unsupported-os");
-jest.mock("../utils/exec-file-async");
+jest.mock("../utils/exec-async");
 const mockedExecAsync = mocked(execAsync);
 
 afterEach(() => {
@@ -12,54 +12,12 @@ afterEach(() => {
   mockedExecAsync.mockRestore();
 });
 
-const mockPrinterListStdout = `
-
-Status                      :
-Name                        : OneNote
-Caption                     :
-Description                 :
-InstallDate                 :
-DeviceID                    : OneNote
-StartTime                   :
-UntilTime                   :
-WorkOffline                 :
-PSComputerName              :
-CimClass                    : root/cimv2:Win32_Printer
-CimInstanceProperties       : {Caption, Description, InstallDate, Name...}
-CimSystemProperties         : Microsoft.Management.Infrastructure.CimSystemProperties
-
-
-Status                      :
-Name                        : Microsoft XPS Document Writer
-Caption                     :
-Description                 :
-InstallDate                 :
-Availability                :
-DeviceID                    : Microsoft-XPS-Document-Writer
-CimClass                    : root/cimv2:Win32_Printer
-CimInstanceProperties       : {Caption, Description, InstallDate, Name...}
-CimSystemProperties         : Microsoft.Management.Infrastructure.CimSystemProperties
-
-
-Status                      :
-Name                        : Microsoft Print to PDF
-Description                 :
-DeviceID                    : Microsoft_Print_to_PDF
-CimClass                    : root/cimv2:Win32_Printer
-CimInstanceProperties       : {Caption, Description, InstallDate, Name...}
-CimSystemProperties         : Microsoft.Management.Infrastructure.CimSystemProperties
-
-
-Status                      :
-Name                        : Fax
-Description                 :
-InstallDate                 :
-DeviceID                    : Fax
-CimClass                    : root/cimv2:Win32_Printer
-CimInstanceProperties       : {Caption, Description, InstallDate, Name...}
-CimSystemProperties         : Microsoft.Management.Infrastructure.CimSystemProperties
-
-`;
+const mockPrinterListStdout = `\r\r
+Node,DeviceID,Name\r\r
+test,OneNote,OneNote\r\r
+test,Microsoft-XPS-Document-Writer,Microsoft XPS Document Writer\r\r
+test,Microsoft_Print_to_PDF,Microsoft Print to PDF\r\r
+test,Fax,Fax\r\r\n`;
 
 it("returns list of available printers", async () => {
   mockedExecAsync.mockResolvedValue({
@@ -87,14 +45,7 @@ it("returns list of available printers", async () => {
 });
 
 it("when did not find any printer info", async () => {
-  const stdout = `
-  Status                      :
-  Caption                     :
-  Description                 :
-  InstallDate                 :
-  Availability                :
-  CimSystemProperties         : Microsoft.Management.Infrastructure.CimSystemProperties
-  `;
+  const stdout = `\n\nNode,\n\n`;
   mockedExecAsync.mockResolvedValue({ stdout, stderr: "" });
 
   const result = await getPrinters();
